@@ -16,6 +16,8 @@ AC_PROG_CC
 AC_PROG_INSTALL
 
 AM_INIT_AUTOMAKE([dist-bzip2 foreign subdir-objects -Wall -Werror])
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+
 # Checks for libraries.
 
 # Checks for header files.
