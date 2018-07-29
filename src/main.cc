@@ -15,11 +15,63 @@
 // scanasm. If not, see <http://www.gnu.org/licenses/>.
 
 #include <iostream>
+#include <stdexcept>
 
-#include "./capstone_ctx.h"
+#include <getopt.h>
+
+#include <elfio/elfio.hpp>
+
+#include "./config.h"
+#include "./reader.h"
+
+static void usage() {
+  std::cout << "Usage: " PACKAGE_NAME " [options] FILE...\n\n";
+  std::cout << "Options:\n";
+  std::cout << "  -h, --help               Show help\n";
+  std::cout << "  -v, --version            Show the package version\n";
+}
 
 int main(int argc, char **argv) {
-  CapstoneCtx ctx;
-  std::cout << "hello world\n";
+  for (;;) {
+    static struct option long_options[] = {{"help", no_argument, 0, 'h'},
+                                           {"version", no_argument, 0, 'v'},
+                                           {0, 0, 0, 0}};
+    int option_index = 0;
+    int c = getopt_long(argc, argv, "hv", long_options, &option_index);
+    if (c == -1) {
+      break;
+    }
+    switch (c) {
+      case 'h':
+        usage();
+        return 0;
+      case 'v':
+        std::cout << PACKAGE_STRING "\n";
+        return 0;
+      case '?':
+        // getopt_long should already have printed an error message
+        break;
+      default:
+        std::cerr << "unrecognized command line flag: " << optarg << "\n";
+        abort();
+    }
+  }
+
+  // if no file arguments were specified, print help
+  if (optind == argc) {
+    usage();
+    return 0;
+  }
+
+  // process each file
+  for (int i = optind; i < argc; i++) {
+    try {
+      Reader reader(argv[i]);
+      reader.Process();
+    } catch (std::exception &exc) {
+      std::cerr << exc.what() << "\n";
+      return 1;
+    }
+  }
   return 0;
 }

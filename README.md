@@ -1,8 +1,16 @@
 This is a project to analyze x86 files.
 
+## Building
+
 To build this project you will need autotools (i.e. autoconf, automake) and
-header files for [Capstone](http://www.capstone-engine.org/). To build the code
-from a fresh git checkout:
+header files for [Capstone](http://www.capstone-engine.org/) and
+[ELFIO](http://elfio.sourceforge.net/). On Fedora you should install:
+
+```bash
+$ dnf install capstone-devel elfio-devel
+```
+
+To build the code from a fresh git checkout:
 
 ```
 $ ./autogen.sh

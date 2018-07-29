@@ -17,21 +17,29 @@
 #pragma once
 
 #include <stdexcept>
+#include <string>
+#include <unordered_map>
 
 #include <capstone/capstone.h>
+#include <elfio/elfio.hpp>
 
-class CapstoneCtx {
+#include "./util.h"
+
+class Reader {
  public:
-  CapstoneCtx() {
-    if (cs_open(CS_ARCH_X86, CS_MODE_64, &handle_) != CS_ERR_OK) {
-      throw std::runtime_error("failed to cs_open");
-    }
-  }
-  CapstoneCtx(const CapstoneCtx &other) = delete;
-  CapstoneCtx(const CapstoneCtx &&other) = delete;
+  Reader() = delete;
+  Reader(const Reader &other) = delete;
+  Reader(const Reader &&other) = delete;
+  explicit Reader(const std::string &filename);
+  ~Reader();
 
-  ~CapstoneCtx() { cs_close(&handle_); }
+  void Process();
 
  private:
+  ELFIO::elfio elf_;
   csh handle_;
+  Counter<std::string> insn_counts_;
+  Counter<std::string> group_counts_;
+
+  void HandleInstruction(const cs_insn &insn);
 };

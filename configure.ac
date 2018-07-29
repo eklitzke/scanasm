@@ -21,13 +21,15 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 # Checks for libraries.
 
 # Checks for header files.
+AC_CHECK_HEADER([elfio/elfio.hpp],,[AC_MSG_ERROR([Failed to find elfio.hpp])])
 
 # Checks for typedefs, structures, and compiler characteristics.
+AC_TYPE_SIZE_T
+AC_TYPE_UINT8_T
 
 # Checks for library functions.
 
 PKG_CHECK_MODULES([CAPSTONE], [capstone])
-
 AC_SUBST([CAPSTONE_CFLAGS])
 AC_SUBST([CAPSTONE_LIBS])
 AC_SUBST([CAPSTONE_LDFLAGS])
