@@ -46,7 +46,8 @@ Reader::Reader(const std::string &filename) {
   cs_option(handle_, CS_OPT_DETAIL, CS_OPT_ON);
 }
 
-void Reader::Process() {
+void Reader::Process(Counter<std::string> *insn_counts,
+                     Counter<std::string> *group_counts) {
   for (const auto &sec : elf_.sections) {
     if (sec->get_name() != ".text") {
       continue;
@@ -57,7 +58,7 @@ void Reader::Process() {
     size_t code_size = sec->get_size();
     size_t addr = sec->get_address();
     while (cs_disasm_iter(handle_, &code, &code_size, &addr, insn)) {
-      HandleInstruction(*insn);
+      HandleInstruction(*insn, insn_counts, group_counts);
     }
     cs_free(insn, 1);
 #else
@@ -65,29 +66,22 @@ void Reader::Process() {
     size_t count = cs_disasm(handle_, (const uint8_t *)sec->get_data(),
                              sec->get_size(), sec->get_address(), 0, &all_insn);
     for (size_t i = 0; i < count; i++) {
-      HandleInstruction(all_insn[i]);
+      HandleInstruction(all_insn[i], insn_counts, group_counts);
       auto insn = all_insn[i];
     }
     cs_free(all_insn, count);
 #endif
   }
-
-  std::cout << "Instructions\n";
-  std::cout << "------------\n";
-  insn_counts_.Print();
-
-  std::cout << "\n";
-  std::cout << "Groups\n";
-  std::cout << "------\n";
-  group_counts_.Print();
 }
 
 Reader::~Reader() { cs_close(&handle_); }
 
-void Reader::HandleInstruction(const cs_insn &insn) {
-  insn_counts_.Inc(insn.mnemonic);
+void Reader::HandleInstruction(const cs_insn &insn,
+                               Counter<std::string> *insn_counts,
+                               Counter<std::string> *group_counts) {
+  insn_counts->Inc(insn.mnemonic);
   const cs_detail &detail = *insn.detail;
   for (auto i = 0; i < detail.groups_count; i++) {
-    group_counts_.Inc(cs_group_name(handle_, detail.groups[i]));
+    group_counts->Inc(cs_group_name(handle_, detail.groups[i]));
   }
 }

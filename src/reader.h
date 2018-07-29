@@ -33,13 +33,13 @@ class Reader {
   explicit Reader(const std::string &filename);
   ~Reader();
 
-  void Process();
+  void Process(Counter<std::string> *insn_counts,
+               Counter<std::string> *group_counts);
 
  private:
   ELFIO::elfio elf_;
   csh handle_;
-  Counter<std::string> insn_counts_;
-  Counter<std::string> group_counts_;
 
-  void HandleInstruction(const cs_insn &insn);
+  void HandleInstruction(const cs_insn &insn, Counter<std::string> *insn_counts,
+                         Counter<std::string> *group_counts);
 };

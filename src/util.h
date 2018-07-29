@@ -20,19 +20,26 @@
 #include <set>
 #include <unordered_map>
 
+// A comparison functor between types pair<T, size_t>
 template <typename T>
-using Comparator = std::function<bool(std::pair<T, int>, std::pair<T, int>)>;
+using Comparator = std::function<bool(const std::pair<T, size_t> &,
+                                      const std::pair<T, size_t> &)>;
 
+// Default Comparator implementation.
 template <typename T>
-bool Compare(std::pair<T, size_t> a, std::pair<T, size_t> b) {
+bool Compare(const std::pair<T, size_t> &a, const std::pair<T, size_t> &b) {
   return a.second > b.second;
 }
 
+// Counter represents a simple class for counting values.
 template <typename T>
 class Counter {
  public:
+  // Get the raw counts.
+  const std::unordered_map<T, size_t> &counts() const { return counts_; }
+
+  // Increment the counter for a key.
   void Inc(const T &key) {
-    // std::unordered_map<T, size_t>::const_iterator pos = counts_.find(key);
     auto pos = counts_.find(key);
     if (pos == counts_.end()) {
       counts_.insert({key, 1});
@@ -41,8 +48,8 @@ class Counter {
     }
   }
 
+  // Print values in the counter.
   void Print() {
-    // Declaring a set that will store the pairs using above comparision logic
     std::set<std::pair<T, int>, Comparator<T> > countSet(
         counts_.begin(), counts_.end(), Compare<T>);
     for (const auto &pr : countSet) {

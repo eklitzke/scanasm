@@ -14,15 +14,16 @@
 // You should have received a copy of the GNU General Public License along with
 // scanasm. If not, see <http://www.gnu.org/licenses/>.
 
+#include <getopt.h>
+
 #include <iostream>
 #include <stdexcept>
-
-#include <getopt.h>
 
 #include <elfio/elfio.hpp>
 
 #include "./config.h"
 #include "./reader.h"
+#include "./util.h"
 
 static void usage() {
   std::cout << "Usage: " PACKAGE_NAME " [options] FILE...\n\n";
@@ -63,15 +64,28 @@ int main(int argc, char **argv) {
     return 0;
   }
 
+  Counter<std::string> insn_counts;
+  Counter<std::string> group_counts;
+
   // process each file
   for (int i = optind; i < argc; i++) {
     try {
       Reader reader(argv[i]);
-      reader.Process();
+      reader.Process(&insn_counts, &group_counts);
     } catch (std::exception &exc) {
       std::cerr << exc.what() << "\n";
       return 1;
     }
   }
+
+  std::cout << "Instructions\n";
+  std::cout << "------------\n";
+  insn_counts.Print();
+
+  std::cout << "\n";
+  std::cout << "Groups\n";
+  std::cout << "------\n";
+  group_counts.Print();
+
   return 0;
 }
