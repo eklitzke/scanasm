@@ -43,11 +43,13 @@ Reader::Reader(const std::string &filename) {
     os << "; cs_open failed";
     throw std::runtime_error(os.str());
   }
-  cs_option(handle_, CS_OPT_DETAIL, CS_OPT_ON);
 }
 
 void Reader::Process(Counter<std::string> *insn_counts,
                      Counter<std::string> *group_counts) {
+  if (group_counts != nullptr) {
+    cs_option(handle_, CS_OPT_DETAIL, CS_OPT_ON);
+  }
   for (const auto &sec : elf_.sections) {
     if (sec->get_name() != ".text") {
       continue;
@@ -80,6 +82,9 @@ void Reader::HandleInstruction(const cs_insn &insn,
                                Counter<std::string> *insn_counts,
                                Counter<std::string> *group_counts) {
   insn_counts->Inc(insn.mnemonic);
+  if (group_counts == nullptr) {
+    return;
+  }
   const cs_detail &detail = *insn.detail;
   for (auto i = 0; i < detail.groups_count; i++) {
     group_counts->Inc(cs_group_name(handle_, detail.groups[i]));

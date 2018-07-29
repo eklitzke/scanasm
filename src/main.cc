@@ -28,21 +28,29 @@
 static void usage() {
   std::cout << "Usage: " PACKAGE_NAME " [options] FILE...\n\n";
   std::cout << "Options:\n";
-  std::cout << "  -h, --help               Show help\n";
-  std::cout << "  -v, --version            Show the package version\n";
+  std::cout << "  -g, --groups        Collect group information\n";
+  std::cout << "  -h, --help          Show help\n";
+  std::cout << "  -v, --version       Show the package version\n";
 }
 
 int main(int argc, char **argv) {
+  bool enable_groups = false;
   for (;;) {
-    static struct option long_options[] = {{"help", no_argument, 0, 'h'},
-                                           {"version", no_argument, 0, 'v'},
-                                           {0, 0, 0, 0}};
+    static struct option long_options[] = {
+        {"groups", no_argument, 0, 'g'},
+        {"help", no_argument, 0, 'h'},
+        {"version", no_argument, 0, 'v'},
+        {0, 0, 0, 0},
+    };
     int option_index = 0;
-    int c = getopt_long(argc, argv, "hv", long_options, &option_index);
+    int c = getopt_long(argc, argv, "ghv", long_options, &option_index);
     if (c == -1) {
       break;
     }
     switch (c) {
+      case 'g':
+        enable_groups = true;
+        break;
       case 'h':
         usage();
         return 0;
@@ -66,26 +74,25 @@ int main(int argc, char **argv) {
 
   Counter<std::string> insn_counts;
   Counter<std::string> group_counts;
+  auto group_ptr = enable_groups ? &group_counts : nullptr;
 
   // process each file
   for (int i = optind; i < argc; i++) {
     try {
       Reader reader(argv[i]);
-      reader.Process(&insn_counts, &group_counts);
+      reader.Process(&insn_counts, group_ptr);
     } catch (std::exception &exc) {
       std::cerr << exc.what() << "\n";
       return 1;
     }
   }
 
-  std::cout << "Instructions\n";
-  std::cout << "------------\n";
   insn_counts.Print();
 
-  std::cout << "\n";
-  std::cout << "Groups\n";
-  std::cout << "------\n";
-  group_counts.Print();
+  if (enable_groups) {
+    std::cout << "\n";
+    group_counts.Print();
+  }
 
   return 0;
 }
